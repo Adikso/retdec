@@ -143,6 +143,92 @@ void PDBTypeFieldList::parse(lfFieldList *record, int size, PDBTypeDefIndexMap &
 				subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
 				break;
 			}
+			case LF_BCLASS:
+			{
+				new_field.field_type = PDBFIELD_BASE;
+				new_field.Member.type_index = subrecord->BClass.index;
+				new_field.Member.type_def = types[subrecord->BClass.index];
+
+				int value;
+				char * name;
+				name = reinterpret_cast<char *>(RecordValue(subrecord->BClass.offset,
+															reinterpret_cast<PDB_DWORD *>(&value)));
+//				new_field.Member.name = name;
+				new_field.Member.offset = value;
+				// Add this field to fields vector
+				fields.push_back(new_field);
+				// Compute the subrecord size
+				subrecord_size = (name - reinterpret_cast<char *>(subrecord));
+				break;
+			}
+		    case LF_STMEMBER:
+            {
+                new_field.field_type = PDBFIELD_STMEMBER;
+                // Get type of struct member
+                new_field.Member.type_index = subrecord->STMember.index;
+                new_field.Member.type_def = types[subrecord->STMember.index];
+                // Get offset and name of struct member
+                int value;
+                char * name;
+                name = reinterpret_cast<char *>(subrecord->STMember.name);
+                if (name == nullptr)
+                {
+                    return;
+                }
+
+                new_field.Member.name = name;
+                new_field.Member.offset = value;
+                // Add this field to fields vector
+                fields.push_back(new_field);
+                // Compute the subrecord size
+                subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
+                break;
+            }
+			case LF_ONEMETHOD:
+			{
+                new_field.field_type = PDBFIELD_ONEMETHOD;
+                new_field.Member.type_index = subrecord->OneMethod.index;
+                new_field.Member.type_def = types[subrecord->OneMethod.index];
+
+                char * name = (char*) subrecord->OneMethod.vbaseoff;
+                if (subrecord->OneMethod.attr.mprop == CV_MTintro || subrecord->OneMethod.attr.mprop == CV_MTpureintro) {
+                    name += sizeof(PDB_DWORD);
+                }
+
+				new_field.Member.name = name;
+				if (subrecord->OneMethod.attr.mprop == CV_MTvirtual) {
+					new_field.Member.offset = -1;
+				} else {
+					new_field.Member.offset = reinterpret_cast<unsigned long>(subrecord->OneMethod.vbaseoff);
+				}
+				fields.push_back(new_field);
+
+				subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
+				break;
+			}
+			case LF_METHOD:
+			{
+				new_field.field_type = PDBFIELD_ONEMETHOD;
+				new_field.Member.type_index = subrecord->Method.mList;
+				new_field.Member.type_def = types[subrecord->Method.mList];
+
+				char * name;
+				name = reinterpret_cast<char *>(subrecord->Method.Name);
+				if (name == nullptr)
+				{
+					return;
+				}
+				new_field.Member.name = name;
+//				fields.push_back(new_field); TODO
+
+                subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
+				break;
+			}
+			case LF_VFUNCTAB:
+			{
+				subrecord_size = sizeof(lfVFuncTab);
+				break;
+			}
 			default:
 				end = true;
 				break;
@@ -492,6 +578,8 @@ void PDBTypeStruct::parse(lfStructure *record, int, PDBTypeDefIndexMap &types)
 			if (fieldlist->fields[i].field_type == PDBFIELD_MEMBER)
 				struct_members.push_back(&fieldlist->fields[i].Member);  // Get struct member
 		}
+
+		field = record->field;
 	}
 
 	static unsigned anonCntr = 0;
@@ -633,6 +721,7 @@ void PDBTypeClass::parse(lfClass *record, int, PDBTypeDefIndexMap &)
 	name = reinterpret_cast<char *>(RecordValue(record->data, reinterpret_cast<PDB_DWORD *>(&value)));
 	size_bytes = value;
 	class_name = name;
+	field = record->field;
 }
 
 void PDBTypeClass::dump(bool nested)

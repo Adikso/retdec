@@ -29,7 +29,7 @@ typedef std::map<std::string, PDBTypeDef *> PDBTypeDefNameMap;
 // Field type
 enum ePDBFieldType
 {
-	PDBFIELD_ENUMERATE, PDBFIELD_MEMBER
+	PDBFIELD_ENUMERATE, PDBFIELD_MEMBER, PDBFIELD_BASE, PDBFIELD_STMEMBER, PDBFIELD_ONEMETHOD, PDBFIELD_METHOD
 };
 
 // Enum member
@@ -502,6 +502,7 @@ class PDBTypeStruct : public PDBTypeDef
 		unsigned int struct_count;  // Number of members
 		std::vector<PDBTypeFieldMember *> struct_members;  // Members
 		std::string struct_name;  // Struct name
+		int field;
 };
 
 // Union
@@ -573,6 +574,7 @@ class PDBTypeClass : public PDBTypeDef
 		// Type-specific members
 		unsigned int class_count;  // Number of members
 		char * class_name;  // Class name
+		int field;
 		//TODO methods, attributes, etc...
 };
 

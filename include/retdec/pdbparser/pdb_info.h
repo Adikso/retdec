@@ -1434,6 +1434,21 @@ typedef struct _lfMember  // non-static data member
 
 #define lfMember_ sizeof (lfMember)
 
+
+typedef struct _lfSTMember  // static data member
+{
+    /*000*/
+    PDB_WORD leaf;  // LF_MEMBER
+    /*002*/
+    CV_fldattr_t attr;
+    /*004*/
+    PDB_DWORD index;
+    /*008*/
+    PDB_BYTE name[];
+    /*00^8*/} lfSTMember, *PlfSTMember, **PPlfSTMember;
+
+#define lfSTMember_ sizeof (lfSTMember)
+
 // -----------------------------------------------------------------
 
 typedef struct _lfBClass  // base class field
@@ -1534,6 +1549,8 @@ typedef union _lfSubRecord
 		lfMethod Method;  // LF_METHOD
 		/*000*/
 		lfNestType NestType;  // LF_NESTTYPE
+	    /*000*/
+        lfSTMember STMember; // LF_STMEMBER
 } lfSubRecord, *PlfSubRecord, **PPlfSubRecord;
 
 #define lfSubRecord_ sizeof (lfSubRecord)
