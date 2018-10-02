@@ -190,20 +190,16 @@ void PDBTypeFieldList::parse(lfFieldList *record, int size, PDBTypeDefIndexMap &
                 new_field.Member.type_index = subrecord->OneMethod.index;
                 new_field.Member.type_def = types[subrecord->OneMethod.index];
 
-                char * name = (char*) subrecord->OneMethod.vbaseoff;
-                if (subrecord->OneMethod.attr.mprop == CV_MTintro || subrecord->OneMethod.attr.mprop == CV_MTpureintro) {
-                    name += sizeof(PDB_DWORD);
-                }
+                PDB_DWORD pOffset;
+                PDB_PBYTE pbName = MethodValue(subrecord->OneMethod.attr, subrecord->OneMethod.vbaseoff, &pOffset);
 
-				new_field.Member.name = name;
-				if (subrecord->OneMethod.attr.mprop == CV_MTvirtual) {
-					new_field.Member.offset = -1;
-				} else {
-					new_field.Member.offset = reinterpret_cast<unsigned long>(subrecord->OneMethod.vbaseoff);
-				}
-				fields.push_back(new_field);
+                new_field.Member.name = (char*) pbName;
+                new_field.Member.offset = *((int*)&pOffset);
 
-				subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
+                fields.push_back(new_field);
+
+				subrecord_size = (reinterpret_cast<PDB_DWORD_PTR>(pbName) - reinterpret_cast<PDB_DWORD_PTR>(subrecord))
+                                 + strlen(reinterpret_cast<const char *>(pbName)) + 1;
 				break;
 			}
 			case LF_METHOD:

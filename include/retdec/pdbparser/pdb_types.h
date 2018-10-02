@@ -637,6 +637,8 @@ class PDBTypes
 		PDBTypeDefNameMap types_byname;  // Map of fully defined types (key is type name)
 };
 
+PDB_PBYTE MethodValue(CV_fldattr_t attr, PDB_PDWORD pdData, PDB_PDWORD pdValue);
+
 } // namespace pdbparser
 } // namespace retdec
 
