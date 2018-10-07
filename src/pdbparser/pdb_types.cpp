@@ -134,12 +134,19 @@ void PDBTypeFieldList::parse(lfFieldList *record, int size, PDBTypeDefIndexMap &
 			}
 			case LF_NESTTYPE:
 			{  // Nested typedef
-			   //TODO (skipping only now)
-				char * name = reinterpret_cast<char *>(subrecord->NestType.Name);
-				if (name == nullptr)
+                new_field.field_type = PDBFIELD_NESTTYPE;
+                new_field.Member.type_index = subrecord->NestType.index;
+                new_field.Member.type_def = types[subrecord->NestType.index];
+
+                char * name = reinterpret_cast<char *>(subrecord->NestType.Name);
+                if (name == nullptr)
 				{
-					return;
-				}
+                    return;
+                }
+
+                new_field.Member.name = name;
+                fields.push_back(new_field);
+
 				subrecord_size = (name - reinterpret_cast<char *>(subrecord)) + strlen(name) + 1;
 				break;
 			}
